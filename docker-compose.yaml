@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  whoami:
+    container_name: "whoami"
+    image: "containous/whoami"
+  database:
+    image: postgres:16.1-alpine
+    environment:
+      POSTGRES_DB: octane
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 123456
+  swoole:
+    container_name: "swoole"
+    build:
+      context: .
+      dockerfile: ./dockerfiles/swoole.dockerfile
+    ports:
+      - "9802:9802"
+  frankenphp:
+    container_name: "frankenphp"
+    build:
+      context: .
+      dockerfile: ./dockerfiles/frankenphp.dockerfile
+    ports:
+      - "9804:9804"
+  wrk:
+    container_name: "benchmark_tool"
+    image: williamyeh/wrk
+    volumes:
+      - ./bench.sh:/app/bench.sh
+    working_dir: /app
+    entrypoint: /app/bench.sh
+    depends_on:
+      - frankenphp
+      - swoole
